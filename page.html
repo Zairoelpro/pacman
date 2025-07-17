@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Página Web</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hero {
+            background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-50">
+    <!-- Encabezado -->
+    <header class="bg-white shadow-sm">
+        <nav class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="#" class="text-2xl font-bold text-blue-600">MiLogo</a>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#" class="text-gray-600 hover:text-blue-600">Inicio</a>
+                    <a href="#" class="text-gray-600 hover:text-blue-600">Arcade Games</a>
+                    <a href="#" class="text-gray-600 hover:text-blue-600">Contacto</a>
+                </div>
+                <button class="md:hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Sección Hero -->
+    <section class="hero text-white py-20">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">Bienvenido a mi Sitio</h1>
+            <p class="text-xl md:text-2xl mb-8">Una solución moderna para tus necesidades digitales</p>
+            <button class="bg-white text-blue-600 px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition duration-300">
+                Comenzar
+            </button>
+        </div>
+    </section>
+
+    <!-- Sección Juegos -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">Nuestros Juegos Arcade</h2>
+            <div class="text-center">
+                <div class="p-8 bg-gray-100 rounded-lg mb-8">
+                    <h3 class="text-2xl font-semibold mb-4">Clásico Pacman</h3>
+                    <div id="score-display" class="text-xl mb-2">Puntos: <span id="score">0</span></div>
+                    <div id="game-container" class="hidden w-full mx-auto mt-6">
+                        <canvas id="pacman-canvas" width="840" height="720" class="border border-gray-300"></canvas>
+                    </div>
+                    <button id="playBtn" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition mt-4">
+                        Jugar ahora
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pie de página -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <h3 class="text-xl font-bold">MiLogo</h3>
+                    <p class="text-gray-400">© 2023 Todos los derechos reservados.</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white">Términos</a>
+                    <a href="#" class="text-gray-400 hover:text-white">Privacidad</a>
+                    <a href="#" class="text-gray-400 hover:text-white">Contacto</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Menú móvil
+        document.querySelector('button').addEventListener('click', function() {
+            const navLinks = document.querySelector('.hidden');
+            navLinks.classList.toggle('hidden');
+            navLinks.classList.toggle('flex');
+            navLinks.classList.toggle('flex-col');
+            navLinks.classList.toggle('absolute');
+            navLinks.classList.toggle('top-16');
+            navLinks.classList.toggle('right-6');
+            navLinks.classList.toggle('bg-white');
+            navLinks.classList.toggle('p-4');
+            navLinks.classList.toggle('rounded');
+            navLinks.classList.toggle('shadow-lg');
+        });
+
+        // Pacman Game Elements
+        let score = 0;
+        const playBtn = document.getElementById('playBtn');
+        const gameContainer = document.getElementById('game-container');
+        const canvas = document.getElementById('pacman-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Show game when button clicked
+        playBtn.addEventListener('click', function() {
+            gameContainer.classList.remove('hidden');
+            playBtn.textContent = 'Jugando!';
+            playBtn.classList.remove('bg-green-600');
+            playBtn.classList.add('bg-yellow-600');
+            
+            // Maze and pellet setup
+            const maze = [
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,0,0,1],
+                [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,0,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1,0,1],
+                [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1],
+                [1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1,0,1],
+                [0,0,0,1,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+                [1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1,0,1],
+                [1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+                [1,0,1,1,1,1,0,1,0,1,0,1,0,1,1,1,0,1,1,1,1],
+                [1,0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,1],
+                [1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,0,1,1,0,1],
+                [1,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,1],
+                [1,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,1],
+                [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+            ];
+            const pellets = [];
+            const pelletRadius = 5;
+            const cellSize = 40; // Increase wall and path width
+
+            // Generate pellets in the maze
+            for (let y = 0; y < maze.length; y++) {
+                for (let x = 0; x < maze[y].length; x++) {
+                    if (maze[y][x] === 0) {
+                        pellets.push({ x: x * cellSize + cellSize/2, y: y * cellSize + cellSize/2 });
+                    }
+                }
+            }
+
+            // Place Pacman at start position (first proper maze cell)
+            let pacmanStartX = 0;
+            let pacmanStartY = 0;
+            let foundStart = false;
+            // Skip first and last rows/columns to ensure inside maze
+            for (let y = 1; y < maze.length - 1; y++) {
+                for (let x = 1; x < maze[y].length - 1; x++) {
+                    if (maze[y][x] === 0) {
+                        // Also verify this cell isn't wall-adjacent
+                        if (maze[y-1][x] === 0 && maze[y+1][x] === 0 && 
+                            maze[y][x-1] === 0 && maze[y][x+1] === 0) {
+                            pacmanStartX = x * cellSize + cellSize/2; 
+                            pacmanStartY = y * cellSize + cellSize/2;
+                            foundStart = true;
+                            break;
+                        }
+                    }
+                }
+                if (foundStart) break;
+            }
+
+            const pacman = {
+                x: pacmanStartX,
+                y: pacmanStartY,
+                radius: 20,
+                speed: 2, // Adjust speed for smoother movement
+                direction: 0,
+                mouthAngle: 0.2,
+                mouthOpen: true,
+                mouthAnimationSpeed: 0.1, // Speed of mouth opening/closing
+                mouthState: 0 // 0 = closed, 1 = opening, 2 = open, 3 = closing
+            };
+            
+            // Game loop
+            function gameLoop() {
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw maze
+                for (let y = 0; y < maze.length; y++) {
+                    for (let x = 0; x < maze[y].length; x++) {
+                        if (maze[y][x] === 1) {
+                            ctx.fillStyle = 'blue';
+                            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                        }
+                    }
+                }
+
+                // Draw pellets
+                ctx.fillStyle = 'white';
+                for (let pellet of pellets) {
+                    ctx.beginPath();
+                    ctx.arc(pellet.x, pellet.y, pelletRadius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Update mouth state
+                if (pacman.mouthState === 0) {
+                    pacman.mouthState = 1; // Start opening
+                } else if (pacman.mouthState === 1) {
+                    pacman.mouthAngle += pacman.mouthAnimationSpeed;
+                    if (pacman.mouthAngle >= 0.4) {
+                        pacman.mouthState = 2; // Fully open
+                    }
+                } else if (pacman.mouthState === 2) {
+                    pacman.mouthState = 3; // Start closing
+                } else if (pacman.mouthState === 3) {
+                    pacman.mouthAngle -= pacman.mouthAnimationSpeed;
+                    if (pacman.mouthAngle <= 0.2) {
+                        pacman.mouthState = 0; // Fully closed
+                    }
+                }
+
+                // Draw Pacman
+                ctx.fillStyle = 'yellow';
+                ctx.beginPath();
+                const startAngle = pacman.direction + pacman.mouthAngle;
+                const endAngle = pacman.direction + (2 * Math.PI) - pacman.mouthAngle;
+                ctx.arc(pacman.x, pacman.y, pacman.radius, startAngle, endAngle);
+                ctx.lineTo(pacman.x, pacman.y);
+                ctx.fill();
+                
+                // Check for pellet collision
+                for (let i = pellets.length - 1; i >= 0; i--) {
+                    const pellet = pellets[i];
+                    const dx = pacman.x - pellet.x;
+                    const dy = pacman.y - pellet.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < pacman.radius + pelletRadius) {
+                        pellets.splice(i, 1); // Remove pellet
+                        score += 1;
+                        document.getElementById('score').textContent = score; // Update score display
+                    }
+                }
+
+                // Move Pacman continuously
+                const proposedX = pacman.x + Math.cos(pacman.direction) * pacman.speed;
+                const proposedY = pacman.y + Math.sin(pacman.direction) * pacman.speed;
+                
+                const cellX = Math.floor(proposedX / cellSize);
+                const cellY = Math.floor(proposedY / cellSize);
+
+                // Check if new position is valid
+                if (cellY >= 0 && cellY < maze.length && 
+                    cellX >= 0 && cellX < maze[0].length &&
+                    maze[cellY][cellX] === 0) {
+                    pacman.x = proposedX;
+                    pacman.y = proposedY;
+                }
+                
+                // Boundary check
+                if(pacman.x > canvas.width + pacman.radius) pacman.x = -pacman.radius;
+                if(pacman.x < -pacman.radius) pacman.x = canvas.width + pacman.radius;
+                if(pacman.y > canvas.height + pacman.radius) pacman.y = -pacman.radius;
+                if(pacman.y < -pacman.radius) pacman.y = canvas.height + pacman.radius;
+                
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // Keyboard controls
+            document.addEventListener('keydown', function(e) {
+                if(e.key === 'ArrowRight') {
+                    pacman.direction = 0; // Right
+                }
+                else if(e.key === 'ArrowDown') {
+                    pacman.direction = Math.PI / 2; // Down
+                }
+                else if(e.key === 'ArrowLeft') {
+                    pacman.direction = Math.PI; // Left
+                }
+                else if(e.key === 'ArrowUp') {
+                    pacman.direction = Math.PI * 1.5; // Up
+                }
+            });
+            
+            // Start game
+            gameLoop();
+        });
+    </script>
+</body>
+</html>
